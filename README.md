@@ -21,7 +21,7 @@ Donations encourage me to maintain the code and ensure it keeps working for futu
 * Firefox: https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/?src=ss  
 
 2) After you have installed the extension then simply click this link to install the script.
-[![Install TicketMaster Bot](https://github.com/spikeruk/TicketmasterBot/blob/master/resources/install.png)](https://github.com/spikeruk/TicketmasterBot/raw/master/ticketmasterbot.user.js)
+[![Install TicketMaster Bot](https://github.com/spikeruk/TicketmasterBot/blob/master/resources/install.png)](https://github.com/kcmoffat/TicketmasterBot/raw/master/ticketmasterbot.user.js)
 
 
 3) Navigate to a 'www1.ticketmaster.' ticket page shortly before the tickets are due to go on sale.
