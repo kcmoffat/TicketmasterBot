@@ -37,7 +37,8 @@ function CheckForFilterPanel(){
 function ProcessFilterPanel(filterBar){
     // We can update this depending on group preferences.
     // For, we only select Standard Tickets and select Best Available.
-    // TODO: Also we should clean up the sequencing of all these listeners
+    // TODO: All these listeners were added haphazardly in testing, I doubt the sequence of actions is as expected
+    // (e.g. select filters then select sort order then select quantity then buy).
     // TODO: Kristine is interested in "soundcheck" packages - we won't know the exact name of the package
     // ahead of time but can prob do a fuzzy string match.  See the Chainsmokers concert for an example of
     // soundcheck packages: https://www1.ticketmaster.com/the-chainsmokers5-seconds-of-summerlennon-stella-world-war-joy-tour/event/02005646C6716EBF
@@ -63,6 +64,8 @@ function ProcessFilterPanel(filterBar){
         }, 1000)
     }, 1000);
 
+    // TODO Dismiss price fluctuation popup
+
     //Change ticket quantity (if applicable)
     waitForElement('.offer-card', function() {
 
@@ -80,7 +83,13 @@ function ProcessFilterPanel(filterBar){
           sectionChangeBuyButton.click();
         });
 
+        // Experimental - this is intended to listen for a pop-up that usually appears when we're blocked.
+        // Note - don't think the element selector works.
+        // TODO: clear cookies
+        waitForElement('.error__main-message-header'), function() {
 
+        }
+        // TODO: test for and deal with any other popups that may arise on the ticket selection page.
     });
 }
 
