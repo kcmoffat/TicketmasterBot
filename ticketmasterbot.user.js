@@ -20,6 +20,23 @@ var refreshIntervalSecondsMin=1; //Set this to how often you want to check for t
 var refreshIntervalSecondsMax=5;
 var numberOfTickets=2; //Set this to the number of tickets you want.  We should prob test out various amounts to see which amounts we should try for.
 
+
+function getAllCookieNames() {
+  var pairs = document.cookie.split(";");
+  var cookies = [];
+  for (var i=0; i<pairs.length; i++){
+    var pair = pairs[i].split("=");
+    cookies.push((pair[0]+'').trim())
+  }
+  return cookies;
+}
+
+function deleteAllCookies() {
+    getAllCookieNames().map(function(cname) {
+        document.cookie = cname+'=;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+    })
+}
+
 function SkipPopup()
 {
     var popupPresent = getElementByXpath('//button[@class = "modal-dialog__button landing-modal-footer__skip-button"]');
@@ -48,7 +65,8 @@ function ProcessFilterPanel(filterBar){
     //Clear all filters
     ClickElement('//*[@id="filter-bar-ticket"]/div[2]/div/div[2]/div/div/span[3]/button')
     //Select standard tickets checkbox
-    ClickElement('//*[@id="000000000001-box-0"]')
+    // TODO this is brittle as Standard Tickets can be any element of list of options.  Should do a more robust search
+    ClickElement('//*[@id="000000000001-box-1"]')
     //Close ticket type menu
     ClickElement('//*[@id="filter-bar-ticket"]/div[1]/div')
 
@@ -202,6 +220,6 @@ $(document).ready(function()
     if(!success)
     {
         //refresh the page after a random interval between refreshIntervalSecondsMin and refreshIntervalSecondsMax (Tickets weren't yet on sale)
-        setTimeout(function(){reload();}, refreshIntervalSecondsMin * 1000 + Math.random() * (refreshIntervalSecondsMax - refreshIntervalSecondsMin) * 1000);
+        setTimeout(function(){deleteAllCookies();reload();}, refreshIntervalSecondsMin * 1000 + Math.random() * (refreshIntervalSecondsMax - refreshIntervalSecondsMin) * 1000);
     }
 });
