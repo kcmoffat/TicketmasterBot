@@ -66,7 +66,7 @@ function ProcessFilterPanel(filterBar){
     ClickElement('//*[@id="filter-bar-ticket"]/div[2]/div/div[2]/div/div/span[3]/button')
     //Select standard tickets checkbox
     // TODO this is brittle as Standard Tickets can be any element of list of options.  Should do a more robust search
-    ClickElement('//*[@id="000000000001-box-1"]')
+    ClickElement('//*[@id="000000000001-box-0"]')
     //Close ticket type menu
     ClickElement('//*[@id="filter-bar-ticket"]/div[1]/div')
 
@@ -84,6 +84,7 @@ function ProcessFilterPanel(filterBar){
 
     // TODO Dismiss price fluctuation popup
 
+
     //Change ticket quantity (if applicable)
     waitForElement('.offer-card', function() {
 
@@ -98,6 +99,12 @@ function ProcessFilterPanel(filterBar){
         //If this occurs, we choose to accept the new seats.
         waitForElement('.button-aux, .modal-dialog__button', function() {
           var sectionChangeBuyButton = getElementByXpath('//button[@class = "button-aux modal-dialog__button"]');
+          sectionChangeBuyButton.click();
+        });
+        
+        // Wow this is lame, class order matters.
+        waitForElement('.modal-dialog__button, .button-aux', function() {
+          var sectionChangeBuyButton = getElementByXpath('//button[@class = "modal-dialog__button button-aux"]');
           sectionChangeBuyButton.click();
         });
 
