@@ -23,12 +23,9 @@ var numberOfTickets=2; //Set this to the number of tickets you want.  We should 
 
 function getAllCookieNames() {
   var pairs = document.cookie.split(";");
-  var cookies = [];
-  for (var i=0; i<pairs.length; i++){
-    var pair = pairs[i].split("=");
-    cookies.push((pair[0]+'').trim())
-  }
-  return cookies;
+  return pairs.map(function(pair) {
+      return (pair.split("=")[0]+'').trim()
+  })
 }
 
 function deleteAllCookies() {
@@ -51,71 +48,75 @@ function CheckForFilterPanel(){
     return filterBar;
 }
 
+function clickTicketTypeCheckbox(searchString) {
+    var selector = "li.checkbox-list__item.checkbox:contains('" + searchString + "')"
+    $(selector).children('input').each(function(idx, elmt) {elmt.click()})
+}
+
 function ProcessFilterPanel(filterBar){
     // We can update this depending on group preferences.
-    // For, we only select Standard Tickets and select Best Available.
+    // For now this:
+    // - selects the ticket quantity (numberOfTickets)
+    // - filters for standard tickets only (no platinum or resale)
+    // - switches to Best Available (instead of Lowest Price)
+    // - selects the first tickets in the list
+    // - tries again if there's a popup saying someone else bought the tickets already
+
+
     // TODO: All these listeners were added haphazardly in testing, I doubt the sequence of actions is as expected
     // (e.g. select filters then select sort order then select quantity then buy).
-    // TODO: Kristine is interested in "soundcheck" packages - we won't know the exact name of the package
-    // ahead of time but can prob do a fuzzy string match.  See the Chainsmokers concert for an example of
-    // soundcheck packages: https://www1.ticketmaster.com/the-chainsmokers5-seconds-of-summerlennon-stella-world-war-joy-tour/event/02005646C6716EBF
+    // TODO: Kristine might be interested in "soundcheck" packages - we can also check that by calling clickTicketTypeCheckbox
+    // example of soundcheck packages: https://www1.ticketmaster.com/the-chainsmokers5-seconds-of-summerlennon-stella-world-war-joy-tour/event/02005646C6716EBF
 
     //Click ticket type icon
     ClickElement('//*[@id="filter-bar-ticket"]/div[1]/div')
+
     //Clear all filters
     ClickElement('//*[@id="filter-bar-ticket"]/div[2]/div/div[2]/div/div/span[3]/button')
-    //Select standard tickets checkbox
-    // TODO this is brittle as Standard Tickets can be any element of list of options.  Should do a more robust search
-    ClickElement('//*[@id="000000000001-box-0"]')
-    //Close ticket type menu
-    ClickElement('//*[@id="filter-bar-ticket"]/div[1]/div')
 
-    // TODO: This is dumb.  We should just waitForElement on the correct filter panel element
-    setTimeout(function(){
-        //Select best available
-        ClickElement('//*[@id="quickpicks-module"]/div[1]/div/span[3]')
+    waitForElement("div#quickpicks-module:contains('Sorry')", function() {
 
-        // TODO: This is dumb.  We should just waitForElement on the correct filter panel element
-        setTimeout(function(){
-            //Click first ticket result in list
-            ClickElement('(//ul/li[@class = "quick-picks__list-item"])[1]/div/div');
-        }, 1000)
-    }, 1000);
+        //Select Standard tickets only
+        clickTicketTypeCheckbox("Standard")
 
-    // TODO Dismiss price fluctuation popup
+        waitForElement('.quick-picks__list-item', function() {
 
+            //Sort by Best Available (instead of Lowest Price).
+            ClickElement('//*[@id="quickpicks-module"]/div[1]/div/span[3]')
 
-    //Change ticket quantity (if applicable)
-    waitForElement('.offer-card', function() {
+            waitForElement('.quick-picks__list-item', function() {
 
-        //Change the number of tickets (if applicable);
-        ChangeTicketQuantity();
+                // Select first ticket offering matching filters
+                ClickElement('(//ul/li[@class = "quick-picks__list-item"])[1]/div/div');
 
-        //Click the button to Buy the tickets (right hand panel)
-        var getTicketsElement = ClickElement('//button[@id = "offer-card-buy-button"]');
+                //Change ticket quantity (if applicable)
+                waitForElement('.offer-card', function() {
 
-        //Sometimes a dialog comes up if someone else beat us to the tickets.
-        //This dialog gives a recommendation for a new seat selection.
-        //If this occurs, we choose to accept the new seats.
-        waitForElement('.button-aux, .modal-dialog__button', function() {
-          var sectionChangeBuyButton = getElementByXpath('//button[@class = "button-aux modal-dialog__button"]');
-          sectionChangeBuyButton.click();
-        });
-        
-        // Wow this is lame, class order matters.
-        waitForElement('.modal-dialog__button, .button-aux', function() {
-          var sectionChangeBuyButton = getElementByXpath('//button[@class = "modal-dialog__button button-aux"]');
-          sectionChangeBuyButton.click();
-        });
+                    //Change the number of tickets (if applicable).
+                    //Note: it looks like the increment button is disabled sometimes.
+                    //We might want to try this upfront before applying filters/sorting.
+                    ChangeTicketQuantity();
 
-        // Experimental - this is intended to listen for a pop-up that usually appears when we're blocked.
-        // Note - don't think the element selector works.
-        // TODO: clear cookies
-        waitForElement('.error__main-message-header'), function() {
+                    //Click the button to Buy the tickets (right hand panel)
+                    ClickElement('//button[@id = "offer-card-buy-button"]');
 
-        }
-        // TODO: test for and deal with any other popups that may arise on the ticket selection page.
-    });
+                    //Sometimes a dialog comes up if someone else beat us to the tickets.
+                    //This dialog gives a recommendation for a new seat selection.
+                    //If this occurs, we choose to accept the new seats.
+                    waitForElement('.button-aux, .modal-dialog__button', function() {
+                        var sectionChangeBuyButton = getElementByXpath('//button[@class = "button-aux modal-dialog__button"]');
+                        sectionChangeBuyButton.click();
+                    });
+
+                    // Wow this is lame, class order matters.
+                    waitForElement('.modal-dialog__button, .button-aux', function() {
+                        var sectionChangeBuyButton = getElementByXpath('//button[@class = "modal-dialog__button button-aux"]');
+                        sectionChangeBuyButton.click();
+                    });
+                });
+            })
+        })
+    })
 }
 
 function ChangeTicketQuantity()
@@ -226,6 +227,7 @@ $(document).ready(function()
 
     if(!success)
     {
+        // TODO: I don't actually know if we want this.  Once we're in the "Waiting room," it sounds like we'll lose our place in line if we refresh.  So either we turn this off, or only refresh until we get into the waiting room.
         //refresh the page after a random interval between refreshIntervalSecondsMin and refreshIntervalSecondsMax (Tickets weren't yet on sale)
         setTimeout(function(){deleteAllCookies();reload();}, refreshIntervalSecondsMin * 1000 + Math.random() * (refreshIntervalSecondsMax - refreshIntervalSecondsMin) * 1000);
     }
