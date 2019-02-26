@@ -53,6 +53,11 @@ function clickTicketTypeCheckbox(searchString) {
     $(selector).children('input').each(function(idx, elmt) {elmt.click()})
 }
 
+function clickClearFilters() {
+    var selector = "button:contains('Clear')"
+    $(selector).each(function(idx, elmt) { elmt.click()})
+}
+
 function ProcessFilterPanel(filterBar){
     // We can update this depending on group preferences.
     // For now this:
@@ -71,52 +76,56 @@ function ProcessFilterPanel(filterBar){
     //Click ticket type icon
     ClickElement('//*[@id="filter-bar-ticket"]/div[1]/div')
 
-    //Clear all filters
-    ClickElement('//*[@id="filter-bar-ticket"]/div[2]/div/div[2]/div/div/span[3]/button')
+    waitForElement(".false, .unbutton .filter-bar__checkbox-toggle-clear", function () {
 
-    waitForElement("div#quickpicks-module:contains('Sorry')", function() {
+        //Clear all filters
+        ClickElement('//*[@id="filter-bar-ticket"]/div[2]/div/div[2]/div/div/span[3]/button')
 
-        //Select Standard tickets only
-        clickTicketTypeCheckbox("Standard")
+        waitForElement("div#quickpicks-module:contains('Sorry')", function() {
 
-        waitForElement('.quick-picks__list-item', function() {
-
-            //Sort by Best Available (instead of Lowest Price).
-            ClickElement('//*[@id="quickpicks-module"]/div[1]/div/span[3]')
+            //Select Standard tickets only
+            clickTicketTypeCheckbox("Standard")
 
             waitForElement('.quick-picks__list-item', function() {
 
-                // Select first ticket offering matching filters
-                ClickElement('(//ul/li[@class = "quick-picks__list-item"])[1]/div/div');
+                //Sort by Best Available (instead of Lowest Price).
+                ClickElement('//*[@id="quickpicks-module"]/div[1]/div/span[3]')
 
-                //Change ticket quantity (if applicable)
-                waitForElement('.offer-card', function() {
+                waitForElement('.quick-picks__list-item', function() {
 
-                    //Change the number of tickets (if applicable).
-                    //Note: it looks like the increment button is disabled sometimes.
-                    //We might want to try this upfront before applying filters/sorting.
-                    ChangeTicketQuantity();
+                    // Select first ticket offering matching filters
+                    ClickElement('(//ul/li[@class = "quick-picks__list-item"])[1]/div/div');
 
-                    //Click the button to Buy the tickets (right hand panel)
-                    ClickElement('//button[@id = "offer-card-buy-button"]');
+                    //Change ticket quantity (if applicable)
+                    waitForElement('.offer-card', function() {
 
-                    //Sometimes a dialog comes up if someone else beat us to the tickets.
-                    //This dialog gives a recommendation for a new seat selection.
-                    //If this occurs, we choose to accept the new seats.
-                    waitForElement('.button-aux, .modal-dialog__button', function() {
-                        var sectionChangeBuyButton = getElementByXpath('//button[@class = "button-aux modal-dialog__button"]');
-                        sectionChangeBuyButton.click();
+                        //Change the number of tickets (if applicable).
+                        //Note: it looks like the increment button is disabled sometimes.
+                        //We might want to try this upfront before applying filters/sorting.
+                        ChangeTicketQuantity();
+
+                        //Click the button to Buy the tickets (right hand panel)
+                        ClickElement('//button[@id = "offer-card-buy-button"]');
+
+                        //Sometimes a dialog comes up if someone else beat us to the tickets.
+                        //This dialog gives a recommendation for a new seat selection.
+                        //If this occurs, we choose to accept the new seats.
+                        waitForElement('.button-aux, .modal-dialog__button', function() {
+                            var sectionChangeBuyButton = getElementByXpath('//button[@class = "button-aux modal-dialog__button"]');
+                            sectionChangeBuyButton.click();
+                        });
+
+                        // Wow this is lame, class order matters.
+                        waitForElement('.modal-dialog__button, .button-aux', function() {
+                            var sectionChangeBuyButton = getElementByXpath('//button[@class = "modal-dialog__button button-aux"]');
+                            sectionChangeBuyButton.click();
+                        });
                     });
-
-                    // Wow this is lame, class order matters.
-                    waitForElement('.modal-dialog__button, .button-aux', function() {
-                        var sectionChangeBuyButton = getElementByXpath('//button[@class = "modal-dialog__button button-aux"]');
-                        sectionChangeBuyButton.click();
-                    });
-                });
+                })
             })
         })
     })
+    
 }
 
 function ChangeTicketQuantity()
