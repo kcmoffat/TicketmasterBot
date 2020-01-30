@@ -37,9 +37,14 @@ function deleteAllCookies() {
 function SkipPopup()
 {
     var popupPresent = getElementByXpath('//button[@class = "modal-dialog__button landing-modal-footer__skip-button"]');
+    var pricingFluctuatePopupPresent = getElementByXpath('//button[@class = "modal-dialog modal-dialog--center edp__modal-dialog pricing-landing__dialog"]');
     if(popupPresent)
     {
         try{ popupPresent.click();}catch(ex){}
+    }
+    if(pricingFluctuatePopupPresent)
+    {
+        try{ pricingFluctuatePopupPresent.click();}catch(ex){}
     }
 }
 
